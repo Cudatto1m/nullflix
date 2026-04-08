@@ -4,9 +4,9 @@ const VIDKING_ORIGIN = 'https://www.vidking.net';
 const VIDEASY = 'https://player.videasy.net';
 let playerSource = localStorage.getItem('vk_player') || 'videasy';
 
-const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:';
-const API_KEY = IS_LOCAL ? '85134f05e0f15fe779e23cd56c1a08d5' : null;
-const BASE = IS_LOCAL ? 'https://api.themoviedb.org/3' : '';
+// Đã sửa: Ép dùng API trực tiếp thay vì thông qua backend của Vercel
+const API_KEY = '85134f05e0f15fe779e23cd56c1a08d5';
+const BASE = 'https://api.themoviedb.org/3';
 
 function escapeHtml(str) {
     if (!str) return '';
@@ -54,16 +54,11 @@ let ignoreProgress = false;
 
 const CACHE_TTL = 30 * 60 * 1000;
 
+// Đã sửa: Lấy dữ liệu phim trực tiếp từ TMDB
 async function tmdb(ep, extra = {}) {
-    let url;
-    if (IS_LOCAL) {
-        const sep = ep.includes('?') ? '&' : '?';
-        url = `${BASE}${ep}${sep}api_key=${API_KEY}&language=vi-VN`;
-        Object.entries(extra).forEach(([k, v]) => url += `&${k}=${encodeURIComponent(v)}`);
-    } else {
-        const params = new URLSearchParams({ ep, ...extra });
-        url = `/api/tmdb?${params.toString()}`;
-    }
+    const sep = ep.includes('?') ? '&' : '?';
+    let url = `${BASE}${ep}${sep}api_key=${API_KEY}&language=vi-VN`;
+    Object.entries(extra).forEach(([k, v]) => url += `&${k}=${encodeURIComponent(v)}`);
 
     const cacheKey = 'tmdb_' + ep + JSON.stringify(extra);
     if (!Object.keys(extra).includes('query')) {
@@ -1158,12 +1153,6 @@ async function generateSyncCode() {
     const timerEl = document.getElementById('sync-pin-timer');
     const btn = document.getElementById('sync-generate');
 
-    if (IS_LOCAL) {
-        status.textContent = 'Cloud sync requires deployment to Vercel';
-        status.className = 'sync-status error';
-        return;
-    }
-
     const data = getSyncData();
     const keys = Object.keys(data);
     if (keys.length === 0) {
@@ -1251,12 +1240,6 @@ async function importSyncCode() {
     const code = document.getElementById('sync-import-code').value.trim();
     const status = document.getElementById('sync-import-status');
     const btn = document.getElementById('sync-import-btn');
-
-    if (IS_LOCAL) {
-        status.textContent = 'Cloud sync requires deployment to Vercel';
-        status.className = 'sync-status error';
-        return;
-    }
 
     if (!code || !/^\d{6}$/.test(code)) {
         status.textContent = 'Enter a 6-digit PIN';
