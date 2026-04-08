@@ -2,9 +2,16 @@ const IMG = 'https://image.tmdb.org/t/p';
 const VIDKING = 'https://www.vidking.net/embed';
 const VIDKING_ORIGIN = 'https://www.vidking.net';
 const VIDEASY = 'https://player.videasy.net';
-let playerSource = localStorage.getItem('vk_player') || 'videasy';
 
-// Đã sửa: Ép dùng API trực tiếp thay vì thông qua backend của Vercel
+// NÂNG CẤP: Hệ thống Đa Server
+const SERVERS = [
+    { id: 'vidsrc', name: 'VidSrc (Có Vietsub CC)' },
+    { id: 'autoembed', name: 'AutoEmbed (Nhiều Sub)' },
+    { id: 'vidking', name: 'VidKing' },
+    { id: 'videasy', name: 'VidEasy' }
+];
+let playerSourceIdx = parseInt(localStorage.getItem('nf_player_idx') || '0');
+
 const API_KEY = '85134f05e0f15fe779e23cd56c1a08d5';
 const BASE = 'https://api.themoviedb.org/3';
 
@@ -54,7 +61,6 @@ let ignoreProgress = false;
 
 const CACHE_TTL = 30 * 60 * 1000;
 
-// Đã sửa: Lấy dữ liệu phim trực tiếp từ TMDB
 async function tmdb(ep, extra = {}) {
     const sep = ep.includes('?') ? '&' : '?';
     let url = `${BASE}${ep}${sep}api_key=${API_KEY}&language=vi-VN`;
@@ -141,7 +147,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (['movies', 'tv', 'mylist'].includes(hash)) {
         currentPage = hash;
     } else if (hash.startsWith('movie/') || hash.startsWith('tv/')) {
-        // We handle detail view opening after rows load so it doesn't block the UI
         setTimeout(() => loadDetailFromUrl(hash.split('/')[0], hash.split('/')[1]), 500);
     }
 
@@ -196,7 +201,6 @@ async function loadNextPage() {
         items.forEach(i => grid.appendChild(makeCard(i)));
         
         if (results.length === 0) {
-            // No more results to fetch
             document.getElementById('infinite-scroll-sentinel').style.display = 'none';
         }
     } catch (e) { console.error('Paging error', e); } finally {
@@ -576,7 +580,6 @@ async function fetchEps(tvId, sNum) {
 function playContent(item, season, episode) {
     if (!item) return;
     saveHistory(item);
-
     destroyPlayerFrame();
 
     if (item.type === 'tv' && !season && !episode) {
@@ -590,25 +593,33 @@ function playContent(item, season, episode) {
     const s = season || 1;
     const e = episode || 1;
 
-    let url;
-    const isVidking = playerSource === 'vidking';
+    // NÂNG CẤP: Lựa chọn Server phát phim
+    const srv = SERVERS[playerSourceIdx].id;
+    let url = '';
 
     if (item.type === 'tv') {
-        if (isVidking) {
-            url = `${VIDKING}/tv/${item.id}/${s}/${e}?color=e50914&autoPlay=true&nextEpisode=true&episodeSelector=true`;
+        if (srv === 'vidsrc') {
+            url = `https://vidsrc.cc/v2/embed/tv/${item.id}/${s}/${e}`;
+        } else if (srv === 'autoembed') {
+            url = `https://player.autoembed.cc/embed/tv/${item.id}/${s}/${e}`;
+        } else if (srv === 'vidking') {
+            url = `${VIDKING}/tv/${item.id}/${s}/${e}?color=46d369&autoPlay=true&nextEpisode=true&episodeSelector=true`;
         } else {
-            url = `${VIDEASY}/tv/${item.id}/${s}/${e}?color=e50914&autoplayNextEpisode=true&nextEpisode=true&episodeSelector=true`;
+            url = `${VIDEASY}/tv/${item.id}/${s}/${e}?color=46d369&autoplayNextEpisode=true&nextEpisode=true&episodeSelector=true`;
         }
     } else {
-        if (isVidking) {
-            url = `${VIDKING}/movie/${item.id}?color=e50914&autoPlay=true`;
+        if (srv === 'vidsrc') {
+            url = `https://vidsrc.cc/v2/embed/movie/${item.id}`;
+        } else if (srv === 'autoembed') {
+            url = `https://player.autoembed.cc/embed/movie/${item.id}`;
+        } else if (srv === 'vidking') {
+            url = `${VIDKING}/movie/${item.id}?color=46d369&autoPlay=true`;
         } else {
-            url = `${VIDEASY}/movie/${item.id}?color=e50914`;
+            url = `${VIDEASY}/movie/${item.id}?color=46d369`;
         }
     }
 
     closeDetail();
-
     ignoreProgress = false;
 
     setTimeout(() => {
@@ -929,13 +940,11 @@ function wireListeners() {
     const filterDrop = document.getElementById('filter-dropdown');
     if (filterBtn) {
         filterBtn.onclick = (e) => { e.stopPropagation(); filterDrop.classList.toggle('open'); };
-        // makeInteractive(filterBtn); // Already handled in .nav-link loop
     }
     
     const mobileFilterTrigger = document.getElementById('mobile-filter-trigger');
     if (mobileFilterTrigger) {
         mobileFilterTrigger.onclick = (e) => { e.stopPropagation(); filterDrop.classList.toggle('open'); };
-        // makeInteractive(mobileFilterTrigger); // Already handled in .bottom-nav-item loop
     }
 
     const sw = document.getElementById('search-wrapper'), si = document.getElementById('search-input');
@@ -1074,7 +1083,7 @@ function wireSettingsActions() {
         const dd = document.getElementById('account-dropdown');
         dd.classList.remove('open');
         document.getElementById('nav-avatar').classList.remove('open');
-        showToast('NULLFLIX v1.0.0 — Nền tảng xem phim miễn phí dùng TMDB và VidKing');
+        showToast('NULLFLIX v2.0.0 — Nền tảng xem phim với Đa Server');
     };
 
     document.getElementById('settings-sync').onclick = e => {
@@ -1084,17 +1093,23 @@ function wireSettingsActions() {
         openSyncModal();
     };
 
+    // NÂNG CẤP: Xử lý nút Chuyển Server
     const playerText = document.getElementById('player-source-text');
-    if (playerText) playerText.textContent = playerSource === 'vidking' ? 'Trình phát: VidKing' : 'Trình phát: VidEasy';
+    if (playerText) {
+        playerText.textContent = `Trình phát: ${SERVERS[playerSourceIdx].name}`;
+    }
 
     const playerToggleBtn = document.getElementById('settings-toggle-player');
     if (playerToggleBtn) {
         playerToggleBtn.onclick = e => {
             e.stopPropagation();
-            playerSource = playerSource === 'vidking' ? 'videasy' : 'vidking';
-            localStorage.setItem('vk_player', playerSource);
-            playerText.textContent = playerSource === 'vidking' ? 'Trình phát: VidKing' : 'Trình phát: VidEasy';
-            showToast(`Đã chuyển trình phát sang ${playerSource === 'vidking' ? 'VidKing' : 'VidEasy'}`);
+            playerSourceIdx = (playerSourceIdx + 1) % SERVERS.length; // Chuyển vòng tròn qua 4 server
+            localStorage.setItem('nf_player_idx', playerSourceIdx);
+            
+            // Đảm bảo không bị lỗi index
+            const currentServer = SERVERS[playerSourceIdx] || SERVERS[0];
+            playerText.textContent = `Trình phát: ${currentServer.name}`;
+            showToast(`Đã chuyển sang ${currentServer.name}`);
         };
     }
 }
