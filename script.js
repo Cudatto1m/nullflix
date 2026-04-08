@@ -3,15 +3,16 @@ const VIDKING = 'https://www.vidking.net/embed';
 const VIDKING_ORIGIN = 'https://www.vidking.net';
 const VIDEASY = 'https://player.videasy.net';
 
-// NÂNG CẤP: Hệ thống Đa Server
+// NÂNG CẤP: Hệ thống Đa Server (Cập nhật link mới chống chặn)
 const SERVERS = [
-    { id: 'vidsrc', name: 'VidSrc (Có Vietsub CC)' },
-    { id: 'autoembed', name: 'AutoEmbed (Nhiều Sub)' },
-    { id: 'vidking', name: 'VidKing' },
-    { id: 'videasy', name: 'VidEasy' }
+    { id: 'embedsu', name: 'Embed.su (Nhanh - Có Vietsub)' },
+    { id: 'vidsrcme', name: 'VidSrc.me (Nhiều Sub)' },
+    { id: 'vidsrcin', name: 'VidSrc.in (Dự phòng)' },
+    { id: 'vidking', name: 'VidKing' }
 ];
 let playerSourceIdx = parseInt(localStorage.getItem('nf_player_idx') || '0');
 
+// Ép dùng API trực tiếp thay vì thông qua backend của Vercel
 const API_KEY = '85134f05e0f15fe779e23cd56c1a08d5';
 const BASE = 'https://api.themoviedb.org/3';
 
@@ -45,7 +46,6 @@ const ROWS = [
 
 const GENRE_MAP = {};
 
-
 let currentPage = 'home';
 let heroItem = null;
 let detailCurrent = null;
@@ -57,7 +57,6 @@ let searchPage = 1;
 let filterPage = 1;
 let isFetchingMore = false;
 let ignoreProgress = false;
-
 
 const CACHE_TTL = 30 * 60 * 1000;
 
@@ -117,7 +116,7 @@ function buildFilterMenu() {
     const uniqueGenres = [];
     const seenNames = new Set();
     genres.forEach(([id, name]) => {
-        if (name === 'Western' || name === 'Westerns') return; // Skip Western
+        if (name === 'Western' || name === 'Westerns') return; 
         if (!seenNames.has(name)) {
             seenNames.add(name);
             uniqueGenres.push({id, name});
@@ -231,7 +230,6 @@ async function loadDetailFromUrl(type, id) {
     }
 }
 
-
 let trendingData = null;
 
 async function buildAllRows() {
@@ -299,7 +297,6 @@ function makeRow(cfg, items) {
     sec.querySelector('.slide-arrow.r').onclick = () => track.scrollBy({ left: track.clientWidth * .82, behavior: 'smooth' });
     return sec;
 }
-
 
 function makeCard(item, badgeType, idx) {
     const card = document.createElement('div');
@@ -380,7 +377,6 @@ function makeCard(item, badgeType, idx) {
     return card;
 }
 
-
 function pickHero() {
     const use = data => {
         const ok = (data.results || []).map(r => norm(r)).filter(i => i && i.backdrop && i.desc);
@@ -415,7 +411,6 @@ function renderHero() {
     document.getElementById('hero-play-btn').onclick = () => playContent(heroItem);
     document.getElementById('hero-info-btn').onclick = () => openDetail(heroItem);
 }
-
 
 async function openDetail(item, updateUrl = true) {
     if (!item) return;
@@ -547,7 +542,6 @@ function syncListBtn(item) {
     btn.onclick = () => { toggleMyList(item); syncListBtn(item); };
 }
 
-
 async function fetchEps(tvId, sNum) {
     const list = document.getElementById('episodes-list');
     list.innerHTML = '<div class="loading-spinner-wrap active"><div class="spinner"></div></div>';
@@ -576,7 +570,6 @@ async function fetchEps(tvId, sNum) {
     } catch (e) { list.innerHTML = '<div class="empty-state"><svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#ff4444" stroke-width="1"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><h3 style="color:#ff4444">Tải thất bại</h3><p>Vui lòng thử lại sau.</p><button class="btn-hero btn-gray" style="margin-top: 20px;" onclick="closeDetail()">Quay lại</button></div>'; }
 }
 
-
 function playContent(item, season, episode) {
     if (!item) return;
     saveHistory(item);
@@ -593,29 +586,29 @@ function playContent(item, season, episode) {
     const s = season || 1;
     const e = episode || 1;
 
-    // NÂNG CẤP: Lựa chọn Server phát phim
+    // NÂNG CẤP: Lựa chọn Server phát phim (Đã cập nhật link chống chặn)
     const srv = SERVERS[playerSourceIdx].id;
     let url = '';
 
     if (item.type === 'tv') {
-        if (srv === 'vidsrc') {
-            url = `https://vidsrc.cc/v2/embed/tv/${item.id}/${s}/${e}`;
-        } else if (srv === 'autoembed') {
-            url = `https://player.autoembed.cc/embed/tv/${item.id}/${s}/${e}`;
-        } else if (srv === 'vidking') {
-            url = `${VIDKING}/tv/${item.id}/${s}/${e}?color=46d369&autoPlay=true&nextEpisode=true&episodeSelector=true`;
+        if (srv === 'embedsu') {
+            url = `https://embed.su/embed/tv/${item.id}/${s}/${e}`;
+        } else if (srv === 'vidsrcme') {
+            url = `https://vidsrc.me/embed/tv?tmdb=${item.id}&season=${s}&episode=${e}`;
+        } else if (srv === 'vidsrcin') {
+            url = `https://vidsrc.in/embed/tv?tmdb=${item.id}&season=${s}&episode=${e}`;
         } else {
-            url = `${VIDEASY}/tv/${item.id}/${s}/${e}?color=46d369&autoplayNextEpisode=true&nextEpisode=true&episodeSelector=true`;
+            url = `${VIDKING}/tv/${item.id}/${s}/${e}?color=46d369&autoPlay=true`;
         }
     } else {
-        if (srv === 'vidsrc') {
-            url = `https://vidsrc.cc/v2/embed/movie/${item.id}`;
-        } else if (srv === 'autoembed') {
-            url = `https://player.autoembed.cc/embed/movie/${item.id}`;
-        } else if (srv === 'vidking') {
-            url = `${VIDKING}/movie/${item.id}?color=46d369&autoPlay=true`;
+        if (srv === 'embedsu') {
+            url = `https://embed.su/embed/movie/${item.id}`;
+        } else if (srv === 'vidsrcme') {
+            url = `https://vidsrc.me/embed/movie?tmdb=${item.id}`;
+        } else if (srv === 'vidsrcin') {
+            url = `https://vidsrc.in/embed/movie?tmdb=${item.id}`;
         } else {
-            url = `${VIDEASY}/movie/${item.id}?color=46d369`;
+            url = `${VIDKING}/movie/${item.id}?color=46d369&autoPlay=true`;
         }
     }
 
@@ -649,7 +642,6 @@ function closePlayer() {
     document.body.style.overflow = '';
     buildContinueRow();
 }
-
 
 async function applyFilter(genreId, genreName) {
     const sp = document.getElementById('search-page');
@@ -731,7 +723,6 @@ async function doSearch(q) {
     }
 }
 
-
 async function fetchSuggestions(q) {
     const box = document.getElementById('search-suggestions');
     if (!q || q.length < 2) { box.classList.remove('active'); box.innerHTML = ''; return; }
@@ -766,7 +757,6 @@ function hideSuggestions() {
     box.innerHTML = '';
 }
 
-
 function getMyList() { return JSON.parse(localStorage.getItem('vk_mylist') || '[]'); }
 function isInMyList(id) { return getMyList().some(i => i.id === id); }
 function toggleMyList(item) {
@@ -788,7 +778,6 @@ function showMyList() {
     ls.forEach(i => g.appendChild(makeCard(i)));
 }
 
-
 function saveHistory(item) {
     let h = JSON.parse(localStorage.getItem('vk_hist') || '[]');
     h = h.filter(x => x.id !== item.id);
@@ -804,7 +793,6 @@ function buildContinueRow() {
     const main = document.getElementById('main-rows');
     main.insertBefore(makeRow({ id: 'continue', title: 'Tiếp tục xem dành cho bạn', mediaType: 'all' }, h), main.firstChild);
 }
-
 
 function saveProgress(data) {
     const payload = {
@@ -828,7 +816,6 @@ function getProgress(id, type, season, episode) {
     const r = localStorage.getItem(key);
     return r ? JSON.parse(r) : null;
 }
-
 
 function navTo(page, updateUrl = true) {
     currentPage = page;
@@ -863,7 +850,6 @@ function navTo(page, updateUrl = true) {
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-
 
 function makeInteractive(el) {
     if (!el) return;
@@ -975,7 +961,6 @@ function wireListeners() {
 
     window.addEventListener('message', ev => {
         if (ignoreProgress) return;
-
         try {
             const msg = typeof ev.data === 'string' ? JSON.parse(ev.data) : ev.data;
             if (msg?.type === 'PLAYER_EVENT' && msg.data) saveProgress(msg.data);
@@ -1096,7 +1081,8 @@ function wireSettingsActions() {
     // NÂNG CẤP: Xử lý nút Chuyển Server
     const playerText = document.getElementById('player-source-text');
     if (playerText) {
-        playerText.textContent = `Trình phát: ${SERVERS[playerSourceIdx].name}`;
+        const currentServer = SERVERS[playerSourceIdx] || SERVERS[0];
+        playerText.textContent = `Trình phát: ${currentServer.name}`;
     }
 
     const playerToggleBtn = document.getElementById('settings-toggle-player');
