@@ -3,16 +3,19 @@ const VIDKING = 'https://www.vidking.net/embed';
 const VIDKING_ORIGIN = 'https://www.vidking.net';
 const VIDEASY = 'https://player.videasy.net';
 
-// NÂNG CẤP: Hệ thống Đa Server (Cập nhật link mới chống chặn)
+// NÂNG CẤP SIÊU TO: Hệ thống 7 Server phim cực mạnh
 const SERVERS = [
     { id: 'embedsu', name: 'Embed.su (Nhanh - Có Vietsub)' },
     { id: 'vidsrcme', name: 'VidSrc.me (Nhiều Sub)' },
-    { id: 'vidsrcin', name: 'VidSrc.in (Dự phòng)' },
-    { id: 'vidking', name: 'VidKing' }
+    { id: 'autoembed', name: 'AutoEmbed (Ổn định)' },
+    { id: 'vidlink', name: 'VidLink (Tốc độ cao)' },
+    { id: 'smashy', name: 'SmashyStream (Mượt mà)' },
+    { id: 'superembed', name: 'SuperEmbed (Đa dạng)' },
+    { id: 'vidking', name: 'VidKing (Dự phòng)' }
 ];
 let playerSourceIdx = parseInt(localStorage.getItem('nf_player_idx') || '0');
 
-// Ép dùng API trực tiếp thay vì thông qua backend của Vercel
+// API Key trực tiếp cho Vercel
 const API_KEY = '85134f05e0f15fe779e23cd56c1a08d5';
 const BASE = 'https://api.themoviedb.org/3';
 
@@ -586,29 +589,31 @@ function playContent(item, season, episode) {
     const s = season || 1;
     const e = episode || 1;
 
-    // NÂNG CẤP: Lựa chọn Server phát phim (Đã cập nhật link chống chặn)
+    // NÂNG CẤP TỐI THƯỢNG: Phân luồng 7 Server tự động sinh URL
     const srv = SERVERS[playerSourceIdx].id;
     let url = '';
 
     if (item.type === 'tv') {
-        if (srv === 'embedsu') {
-            url = `https://embed.su/embed/tv/${item.id}/${s}/${e}`;
-        } else if (srv === 'vidsrcme') {
-            url = `https://vidsrc.me/embed/tv?tmdb=${item.id}&season=${s}&episode=${e}`;
-        } else if (srv === 'vidsrcin') {
-            url = `https://vidsrc.in/embed/tv?tmdb=${item.id}&season=${s}&episode=${e}`;
-        } else {
-            url = `${VIDKING}/tv/${item.id}/${s}/${e}?color=46d369&autoPlay=true`;
+        switch(srv) {
+            case 'embedsu': url = `https://embed.su/embed/tv/${item.id}/${s}/${e}`; break;
+            case 'vidsrcme': url = `https://vidsrc.me/embed/tv?tmdb=${item.id}&season=${s}&episode=${e}`; break;
+            case 'autoembed': url = `https://player.autoembed.cc/embed/tv/${item.id}/${s}/${e}`; break;
+            case 'vidlink': url = `https://vidlink.pro/tv/${item.id}/${s}/${e}`; break;
+            case 'smashy': url = `https://player.smashy.stream/tv/${item.id}?s=${s}&e=${e}`; break;
+            case 'superembed': url = `https://multiembed.mov/directstream.php?video_id=${item.id}&tmdb=1&s=${s}&e=${e}`; break;
+            case 'vidking': url = `${VIDKING}/tv/${item.id}/${s}/${e}?color=46d369&autoPlay=true`; break;
+            default: url = `https://embed.su/embed/tv/${item.id}/${s}/${e}`;
         }
     } else {
-        if (srv === 'embedsu') {
-            url = `https://embed.su/embed/movie/${item.id}`;
-        } else if (srv === 'vidsrcme') {
-            url = `https://vidsrc.me/embed/movie?tmdb=${item.id}`;
-        } else if (srv === 'vidsrcin') {
-            url = `https://vidsrc.in/embed/movie?tmdb=${item.id}`;
-        } else {
-            url = `${VIDKING}/movie/${item.id}?color=46d369&autoPlay=true`;
+        switch(srv) {
+            case 'embedsu': url = `https://embed.su/embed/movie/${item.id}`; break;
+            case 'vidsrcme': url = `https://vidsrc.me/embed/movie?tmdb=${item.id}`; break;
+            case 'autoembed': url = `https://player.autoembed.cc/embed/movie/${item.id}`; break;
+            case 'vidlink': url = `https://vidlink.pro/movie/${item.id}`; break;
+            case 'smashy': url = `https://player.smashy.stream/movie/${item.id}`; break;
+            case 'superembed': url = `https://multiembed.mov/directstream.php?video_id=${item.id}&tmdb=1`; break;
+            case 'vidking': url = `${VIDKING}/movie/${item.id}?color=46d369&autoPlay=true`; break;
+            default: url = `https://embed.su/embed/movie/${item.id}`;
         }
     }
 
@@ -1068,7 +1073,7 @@ function wireSettingsActions() {
         const dd = document.getElementById('account-dropdown');
         dd.classList.remove('open');
         document.getElementById('nav-avatar').classList.remove('open');
-        showToast('NULLFLIX v2.0.0 — Nền tảng xem phim với Đa Server');
+        showToast('NULLFLIX v3.0.0 — Nền tảng với hệ thống 7 Server');
     };
 
     document.getElementById('settings-sync').onclick = e => {
@@ -1078,7 +1083,6 @@ function wireSettingsActions() {
         openSyncModal();
     };
 
-    // NÂNG CẤP: Xử lý nút Chuyển Server
     const playerText = document.getElementById('player-source-text');
     if (playerText) {
         const currentServer = SERVERS[playerSourceIdx] || SERVERS[0];
@@ -1089,10 +1093,9 @@ function wireSettingsActions() {
     if (playerToggleBtn) {
         playerToggleBtn.onclick = e => {
             e.stopPropagation();
-            playerSourceIdx = (playerSourceIdx + 1) % SERVERS.length; // Chuyển vòng tròn qua 4 server
+            playerSourceIdx = (playerSourceIdx + 1) % SERVERS.length; // Lướt qua 7 server
             localStorage.setItem('nf_player_idx', playerSourceIdx);
             
-            // Đảm bảo không bị lỗi index
             const currentServer = SERVERS[playerSourceIdx] || SERVERS[0];
             playerText.textContent = `Trình phát: ${currentServer.name}`;
             showToast(`Đã chuyển sang ${currentServer.name}`);
