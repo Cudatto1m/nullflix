@@ -2,6 +2,10 @@
 
 NULLFLIX là một trang web cho phép bạn xem phim miễn phí. Chúng tôi cung cấp một thư viện lớn các bộ phim và chương trình truyền hình, tất cả đều có sẵn để xem trực tuyến. Với giao diện đơn giản và dễ sử dụng, NULLFLIX là nơi lý tưởng để thưởng thức nội dung giải trí mà không phải trả tiền.
 
+## Link
+
+https://nullflix-8541.vercel.app/
+
 ## Tính năng
 
 - Xem phim và chương trình TV miễn phí
