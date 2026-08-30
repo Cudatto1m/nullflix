@@ -3205,3 +3205,43 @@ footer {
 .detail-col-side {
     min-width: 0;
 }
+
+/* Donate Section */
+.donate-section {
+    text-align: center;
+    padding: 40px 20px;
+    margin-bottom: 20px;
+}
+
+.donate-section h3 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.donate-section p {
+    font-size: .9rem;
+    color: #888;
+    margin-bottom: 20px;
+}
+
+.donate-qr {
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;
+    border-radius: 12px;
+    border: 2px solid rgba(255, 255, 255, .1);
+    object-fit: cover;
+}
+
+@media(max-width:768px) {
+    .donate-section {
+        padding: 30px 16px;
+    }
+    
+    .donate-qr {
+        width: 180px;
+        height: 180px;
+    }
+}

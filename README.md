@@ -6,6 +6,12 @@ NULLFLIX - Phim không giới hạn. Nền tảng xem phim miễn phí với gia
 
 https://nullflix-five.vercel.app/
 
+## Ủng hộ tôi
+
+Nếu bạn thích dự án này, hãy ủng hộ tôi một ly cà phê nhé! ☕
+
+![QR ủng hộ](public/donate-qr.jpg)
+
 ## Tính năng
 
 - 🎬 Xem phim và chương trình TV miễn phí

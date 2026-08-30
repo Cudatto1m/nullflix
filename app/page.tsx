@@ -168,6 +168,11 @@ function MainAppContent() {
       </main>
 
       <footer>
+        <div className="donate-section">
+          <h3>Ủng hộ tôi ☕</h3>
+          <p>Nếu bạn thích NULLFLIX, hãy ủng hộ tôi một ly cà phê nhé!</p>
+          <img src="/donate-qr.jpg" alt="QR ủng hộ" className="donate-qr" />
+        </div>
         <p className="footer-copy">© 2026 NULLFLIX~uwu Dữ liệu từ TMDB</p>
       </footer>
 
